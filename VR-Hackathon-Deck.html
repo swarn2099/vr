@@ -1,0 +1,340 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Verified Regeneration</title>
+<style>
+@page { size: 13.333in 7.5in; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --navy:#0C2074; --navy2:#122B8F; --red:#D9261C; --ink:#101728; --paper:#FFFFFF; --mist:#EEF1F8; --muted:#5A6478; }
+body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); }
+.slide { width: 13.333in; height: 7.5in; page-break-after: always; position: relative; overflow: hidden; background: var(--paper); padding: 0.55in 0.7in; display: flex; flex-direction: column; }
+.slide.dark { background: linear-gradient(135deg, var(--navy) 0%, #081552 100%); color: #fff; }
+.bar { position:absolute; top:0; left:0; right:0; height:0.09in; background: linear-gradient(90deg, var(--red) 0 22%, var(--navy) 22% 100%); }
+.dark .bar { background: linear-gradient(90deg, var(--red) 0 22%, rgba(255,255,255,.25) 22% 100%); }
+.foot { position:absolute; bottom:0.28in; left:0.7in; right:0.7in; display:flex; justify-content:space-between; font-size:10.5pt; color:var(--muted); }
+.dark .foot { color:#9FB0E8; }
+.kicker { font-size:12pt; letter-spacing:.18em; text-transform:uppercase; color:var(--red); font-weight:700; margin-bottom:0.18in; }
+.dark .kicker { color:#FF7A70; }
+h1 { font-size:40pt; line-height:1.08; font-weight:800; letter-spacing:-.015em; }
+h2 { font-size:27pt; line-height:1.1; font-weight:800; letter-spacing:-.01em; margin-bottom:0.28in; color:var(--navy); }
+.dark h2 { color:#fff; }
+h3 { font-size:14pt; margin-bottom:6pt; }
+p.lead { font-size:16pt; line-height:1.45; }
+.cols { display:flex; gap:0.35in; flex:1; min-height:0; }
+.col { flex:1; min-width:0; }
+.card { background:var(--mist); border-left:4px solid var(--navy); border-radius:6px; padding:14pt 16pt; margin-bottom:12pt; }
+.dark .card { background:rgba(255,255,255,.08); border-left-color:var(--red); }
+.card p, li { font-size:13pt; line-height:1.42; }
+.card .t { font-weight:800; font-size:13.5pt; margin-bottom:4pt; color:var(--navy); }
+.dark .card .t { color:#fff; }
+ul { padding-left:16pt; } li { margin-bottom:7pt; }
+.big { font-size:19pt; font-weight:800; color:var(--navy); line-height:1.3; }
+.quote { font-size:21pt; font-weight:700; line-height:1.35; border-left:5px solid var(--red); padding-left:18pt; margin:0.25in 0; }
+.mono { font-family:"SF Mono",Menlo,Consolas,monospace; }
+.term { background:#0B1020; color:#D9E4FF; border-radius:8px; padding:13pt 15pt; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:11.5pt; line-height:1.55; }
+.term .c { color:#7FE3B0; } .term .d { color:#8fa2c9; } .term .r { color:#FF8A80; } .term .y { color:#FFD37F; }
+.flow { display:flex; align-items:stretch; gap:8pt; margin-top:0.15in; }
+.step { flex:1; background:var(--mist); border-top:4px solid var(--navy); border-radius:6px; padding:10pt 9pt; text-align:center; }
+.step b { display:block; font-size:12pt; color:var(--navy); margin-bottom:4pt; }
+.step span { font-size:10pt; color:var(--muted); line-height:1.3; display:block; }
+.arrow { align-self:center; font-size:16pt; color:var(--red); font-weight:800; }
+.tag { display:inline-block; font-size:10pt; font-weight:800; letter-spacing:.06em; padding:2.5pt 8pt; border-radius:999px; margin-right:6pt; }
+.tag.obs { background:#DEF3E6; color:#0B6B3A; } .tag.inf { background:#FFF1D6; color:#8A5A00; }
+.tag.unr { background:#FDE1E1; color:#A11212; } .tag.auth { background:#E2E6F9; color:var(--navy); }
+table { border-collapse:collapse; width:100%; font-size:12.5pt; }
+td, th { padding:8pt 10pt; border-bottom:1px solid #D8DEEC; text-align:left; vertical-align:top; }
+th { color:var(--navy); font-size:11pt; text-transform:uppercase; letter-spacing:.08em; }
+.shield { display:inline-flex; align-items:center; gap:10pt; }
+.shield .mark { width:34pt; height:34pt; border-radius:8pt; background:linear-gradient(160deg,var(--red) 0 30%,#fff 30% 34%,var(--navy) 34% 100%); }
+.ladder { display:flex; flex-direction:column; gap:8pt; margin-top:0.05in; }
+.rung { display:flex; align-items:center; gap:14pt; background:var(--mist); border-radius:7px; padding:10pt 14pt; border-left:5px solid var(--navy); }
+.rung .n { flex:0 0 26pt; height:26pt; border-radius:50%; background:var(--navy); color:#fff; font-weight:800; font-size:13pt; display:flex; align-items:center; justify-content:center; }
+.rung .cmd { flex:0 0 3.5in; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12pt; font-weight:700; color:var(--navy); }
+.rung .what { flex:1; font-size:12.5pt; line-height:1.35; }
+.rung .when { flex:0 0 1.15in; text-align:right; font-size:11pt; font-weight:700; color:var(--muted); }
+.rung.human { border-left-color:var(--red); background:#FFF3F2; }
+.rung.human .n { background:var(--red); } .rung.human .cmd { color:var(--red); }
+.band { margin-top:0.16in; background:var(--navy); color:#fff; border-radius:7px; padding:12pt 16pt; font-size:13pt; line-height:1.45; }
+.band b { color:#FFD9D6; }
+.estates { display:flex; align-items:center; justify-content:center; gap:0; margin:0.12in 0 0.2in; }
+.estate { flex:1; background:var(--mist); border-top:4px solid var(--navy); border-radius:7px; padding:11pt 10pt; text-align:center; }
+.estate b { display:block; font-size:13pt; color:var(--navy); }
+.estate span { display:block; font-size:10pt; color:var(--muted); margin-top:3pt; line-height:1.3; }
+.estate.dim { opacity:.62; border-top-color:var(--muted); }
+.link { flex:0 0 0.5in; text-align:center; font-size:9.5pt; color:var(--red); font-weight:800; line-height:1.25; }
+.dark .estate { background:rgba(255,255,255,.09); border-top-color:var(--red); }
+.dark .estate b { color:#fff; } .dark .estate span { color:#B9C6EE; }
+.dark .estate.dim { opacity:.55; }
+.role { flex:1; background:var(--mist); border-left:4px solid var(--navy); border-radius:7px; padding:13pt 15pt; }
+.role b { display:block; font-size:14pt; color:var(--navy); margin-bottom:5pt; }
+.role p { font-size:12.5pt; line-height:1.45; }
+.role .before { color:var(--muted); display:block; margin-bottom:4pt; }
+.dark .role { background:rgba(255,255,255,.08); border-left-color:var(--red); }
+.dark .role b { color:#fff; } .dark .role .before { color:#9FB0E8; }
+</style></head><body>
+
+<!-- 1 · TITLE -->
+<section class="slide dark">
+  <div class="bar"></div>
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+    <div class="kicker">Spend Management AI Hackathon · 2026</div>
+    <h1>Verified Regeneration</h1>
+    <p class="lead" style="margin-top:0.22in; max-width:9.6in; color:#D6DEF8;">The product memory and governance layer between human intent and AI execution — so every AI agent working on Spend Management knows what the product is, what must stay true, and who decided it.</p>
+    <p style="margin-top:0.5in; font-size:14pt; color:#9FB0E8;">Swarn Singh &nbsp;·&nbsp; Live demo on the Spend Management estate &nbsp;·&nbsp; 7,800+ knowledge nodes</p>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>Internal hackathon material</span></div>
+</section>
+
+<!-- 2 · PROBLEM -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">The problem</div>
+  <h2>AI made writing code fast.<br>Understanding still starts over — every session.</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card"><div class="t">Every AI session begins at zero</div><p>Before touching Spend Management, an engineer or AI agent must rediscover what exists, what it means, what depends on it, and why it was built that way. That work is redone for every session, every engineer, every model.</p></div>
+      <div class="card"><div class="t">Confident ≠ correct</div><p>A coding agent will implement “let users edit card controls in read-only mode” fluently and quickly — it has no way to know a person already decided read-only must stay read-only.</p></div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-left-color:var(--red)"><div class="t">In a bank, that’s not a productivity gap — it’s a control gap</div><p>Product decisions live in people’s heads and old tickets. When AI regenerates code faster than humans can review it, undocumented intent is the first casualty — and the compliance function becomes the bottleneck.</p></div>
+      <div class="quote" style="font-size:17pt;">AI accelerates execution.<br>Understanding — and governance — start over.</div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>2</span></div>
+</section>
+
+<!-- 3 · WHAT VR IS -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">What VR is</div>
+  <h2>Copilot, but it remembers your product —<br>and remembers who decided what.</h2>
+  <div class="cols">
+    <div class="col">
+      <ul style="font-size:14pt; line-height:1.5;">
+        <li><b>Product graph:</b> 7,800+ nodes connecting capabilities → behavior → implementation → evidence → tests → integrations → human decisions, for the real Spend Management estate.</li>
+        <li><b>Works inside Copilot:</b> engineers ask normal questions; VR supplies bounded, cited context and validates every claim mechanically.</li>
+        <li><b>Governance built in:</b> human decisions are first-class records with a named reviewer and an append-only audit history.</li>
+      </ul>
+      <div class="quote" style="font-size:16pt; margin-top:0.2in;">A plain coding agent reconstructs the product.<br>VR remembers it.</div>
+    </div>
+    <div class="col">
+      <div class="card"><div class="t">Every fact is labeled by how it is known</div>
+        <p style="margin-top:6pt;"><span class="tag obs">EXISTS TODAY</span> backed by direct code evidence</p>
+        <p style="margin-top:6pt;"><span class="tag inf">INFERRED</span> supported interpretation, not reviewed</p>
+        <p style="margin-top:6pt;"><span class="tag auth">RULE TO PROTECT</span> a named person approved it</p>
+        <p style="margin-top:6pt;"><span class="tag unr">UNKNOWN</span> VR says so — it never guesses</p>
+      </div>
+      <div class="card" style="border-left-color:var(--red)"><div class="t">The core principle: confidence is never authority</div><p>No model output — however confident — becomes a product rule. Only an explicit human decision does. And once decided, no AI can silently undo it.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>3</span></div>
+</section>
+
+<!-- 4 · HOW IT WORKS -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">How it works</div>
+  <h2>Four steps, and only one of them needs a person</h2>
+  <div class="flow">
+    <div class="step"><b>1 · Learn the product</b><span>VR reads the estate once and builds a memory: capabilities, behavior, evidence, and what it could not determine</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2 · Answer with citations</b><span>Every question answered from that memory — with file and line references, and honest unknowns</span></div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3 · Draft the rules</b><span>One command turns a capability into a reviewable draft of what it does today. Nothing invented</span></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-top-color:var(--red)"><b>4 · A person decides</b><span>Only a named human turns behavior into a rule. This is the step AI is not allowed to take</span></div>
+  </div>
+  <div class="cols" style="margin-top:0.25in;">
+    <div class="col"><div class="card"><div class="t">The AI proposes. VR checks.</div><p>Copilot does the reasoning; VR supplies the evidence and rejects any claim that cites nothing. A confident sentence with no source never reaches the answer.</p></div></div>
+    <div class="col"><div class="card"><div class="t">It says when it doesn't know</div><p>“Should we enhance MCC from 23 to 43?” → VR asks what 23 → 43 means, and stops. In a bank, a confident wrong answer costs more than no answer.</p></div></div>
+    <div class="col"><div class="card"><div class="t">It runs where the code is</div><p>Inside VS Code, on the Copilot licenses engineers already have. No code, data, or decisions leave the machine.</p></div></div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>4</span></div>
+</section>
+
+<!-- 5 · DEMO 1 -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">Live demo · 1 of 3</div>
+  <h2>Ask it something it should refuse to answer</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="term">
+        <span class="d">▶</span> Should we enhance our MCC from 23 to 43<br>
+        &nbsp;&nbsp;as part of a NextGenMCC effort?<br><br>
+        <span class="y">■ I need one detail before I analyze this.</span><br><br>
+        <span class="c">What does 23 → 43 represent in NextGenMCC?</span><br><br>
+        <span class="d">…and it stops. No impact analysis. No risks.<br>
+        &nbsp;&nbsp;No confident invention.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-left-color:var(--red)"><div class="t">Why start here</div><p>Every one of us has watched an AI answer this kind of question beautifully and wrongly. VR found the MCC areas in the product — it could easily have produced an impressive analysis. It refuses, because it cannot tell what 23 → 43 means.</p></div>
+      <div class="card"><div class="t">The rule underneath</div><p>When meaning is missing, ask — never manufacture. That single behavior is what makes the rest of the answers worth trusting.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>5</span></div>
+</section>
+
+<!-- 6 · DEMO 2 -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">Live demo · 2 of 3</div>
+  <h2>Watch a rule get made — then watch it defend itself</h2>
+  <div class="cols">
+    <div class="col" style="flex:1.2">
+      <div class="term">
+        <span class="d">▶</span> Wrap the Card Controls capability<br>
+        <span class="y">⚠ DRAFT FROM EXISTING BEHAVIOR — NOT APPROVED INTENT</span><br>
+        <span class="d">…14 behaviors, each cited to a file and line…</span><br><br>
+        <span class="d">▶</span> Promote the analytics-event line as a rule<br>
+        <span class="c">✓ Recorded — approved by Swarn Singh, 09:41</span><br><br>
+        <span class="d">▶ …forty seconds later…</span><br>
+        <span class="d">▶</span> Remove the analytics event from the card-add<br>
+        &nbsp;&nbsp;spend-limit step to reduce noise.<br><br>
+        <span class="r">■ This change touches a rule a person already approved.</span><br>
+        <span class="d">Keep the rule · Change the rule · Decide later · Cancel</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-left-color:var(--red)"><div class="t">The moment</div><p>That rule did not exist two minutes ago. You watched it get made, and you watched it stop a plausible request. In six months, when whoever made it has moved teams, it still will.</p></div>
+      <div class="card"><div class="t">Not an AI opinion</div><p>VR is not blocking because a model thinks this is risky. It is blocking because a named person decided it — and it can show you who, and when.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>6</span></div>
+</section>
+
+<!-- 7 · DEMO 3 -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">Live demo · 3 of 3</div>
+  <h2>Copilot does the thinking. VR checks its work.</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card"><div class="t">Inside VS Code, on your Copilot licence</div><p>Ask “should I remove Adobe Analytics?” and Copilot names the risks — using evidence VR retrieved and bounded, not a web search and not its memory.</p></div>
+      <div class="card"><div class="t">Then every claim is checked</div><p><b>8 risks supported by evidence. 0 rejected as unsupported.</b> A risk that cites nothing is thrown away before you ever see it — including risks the model was confident about.</p></div>
+      <div class="card" style="border-left-color:var(--red)"><div class="t">The question it asked back</div><p>“Is Adobe Analytics the provider behind this code, or does ‘analytics’ also cover the SpendAnalytics feature that must remain?” — the distinction a careful engineer would raise.</p></div>
+    </div>
+    <div class="col">
+      <div class="term">
+        <span class="c">RISK</span> Analytics definitions removed while still<br>
+        &nbsp;&nbsp;referenced by event-driven web code<br>
+        <span class="d">→ src/analytics/events/cardControls.ts</span><br><br>
+        <span class="c">RISK</span> Cross-repository deployment gap<br>
+        <span class="d">→ touched code spans four repositories</span><br><br>
+        <span class="c">RISK</span> Existing test suite breakage<br>
+        <span class="d">→ 20 test files cover the touched area</span><br><br>
+        <span class="d">Every line above carries a file and line number.<br>
+        Anything that did not, VR removed.</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>7</span></div>
+</section>
+
+<!-- 8 · WHY US BANK -->
+<section class="slide dark">
+  <div class="bar"></div>
+  <div class="kicker">Why it matters here</div>
+  <h2>Bank controls, expressed as engineering artifacts</h2>
+  <div class="cols">
+    <div class="col">
+      <table style="color:#EAF0FF;">
+        <tr><th style="color:#9FB0E8;">Control</th><th style="color:#9FB0E8;">What VR produces continuously</th></tr>
+        <tr><td>Change management</td><td>Governed change packages; conflicting changes stop for a human decision</td></tr>
+        <tr><td>Segregation of duties</td><td>Models propose, validators gate, only named humans approve rules</td></tr>
+        <tr><td>Audit trail</td><td>Append-only decision history; per-answer evidence bundles with citations</td></tr>
+        <tr><td>Institutional memory</td><td>Product knowledge that survives attrition, reorgs, and model changes</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <div class="card"><div class="t">Operational value now</div><p>Faster, safer engineering on Spend Management: cross-repo answers with citations in seconds, honest unknowns, and rules that can’t be lost in Slack threads.</p></div>
+      <div class="card"><div class="t">Strategic value next</div><p>This is the on-ramp to Verified Regeneration as a discipline: wrap legacy behavior → govern constraints → hand any AI a contract it must satisfy — the path to safely regenerating implementations.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>8</span></div>
+</section>
+
+<!-- 9 · ADOPTION -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">How a team adopts it</div>
+  <h2>Five commands. Cited answers on day one.</h2>
+  <div class="ladder">
+    <div class="rung"><div class="n">1</div><div class="cmd">vr init</div><div class="what">VR reads your repos — read-only — and maps files, tests and languages. Nothing is inferred or assumed yet.</div><div class="when">~10 minutes</div></div>
+    <div class="rung"><div class="n">2</div><div class="cmd">vr semantic scan</div><div class="what">Builds the product graph: capabilities, behaviors, evidence, unknowns. AI proposes in bounded packages; VR validates every claim against citations.</div><div class="when">unattended</div></div>
+    <div class="rung"><div class="n">3</div><div class="cmd">vr explore &nbsp;·&nbsp; ask in Copilot</div><div class="what">Your team asks normal questions and gets cited answers, the rules that apply, and honest unknowns — across every repo at once.</div><div class="when">day one</div></div>
+    <div class="rung"><div class="n">4</div><div class="cmd">vr wrap "&lt;capability&gt;"</div><div class="what">Drafts a reviewable manifest of what a capability actually does today — every line cited and labeled, nothing invented.</div><div class="when">minutes</div></div>
+    <div class="rung human"><div class="n">5</div><div class="cmd">vr promote &lt;line&gt; --reviewer</div><div class="what"><b>A person</b> turns observed behavior into a rule to protect. From that moment it is enforced on every future change, by any AI.</div><div class="when">seconds</div></div>
+  </div>
+  <div class="band">AI proposes · VR validates · <b>only a named person approves</b> &nbsp;—&nbsp; runs entirely inside the bank’s environment, on the Copilot licenses engineers already have. No code, data, or decisions leave the machine.</div>
+  <div class="foot"><span>Verified Regeneration</span><span>9</span></div>
+</section>
+
+<!-- 10 · REAL VS NEXT -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">Credibility</div>
+  <h2>What’s real today — and what we won’t claim yet</h2>
+  <div class="cols">
+    <div class="col">
+      <h3 style="color:var(--navy);">Working now, on the real estate</h3>
+      <ul>
+        <li>Persistent product graph · 7,800+ nodes, integrity-verified</li>
+        <li>Conversational Ask/Analyze inside Copilot, with citations</li>
+        <li>Product identity &amp; context layer (what the product <i>is</i>)</li>
+        <li>Wrap → Promote → Constraint pipeline with audit history</li>
+        <li>Approved-rule gate on change requests + governed packages</li>
+        <li>Per-answer evidence bundles · fail-closed clarification</li>
+        <li>53 automated tests · runtime integrity manifest</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3 style="color:var(--red);">Deliberately not claimed</h3>
+      <ul>
+        <li>Autonomous implementation or “safe to merge” — packages are handed to agents; independent verification is the roadmap</li>
+        <li>Signed per-build evidence bundles, shadow verification, drift detection — designed, not yet built</li>
+        <li>Cold-start quality on an arbitrary estate — exactly what a pilot measures</li>
+      </ul>
+      <div class="card" style="margin-top:10pt;"><div class="t">Why we say this out loud</div><p>In a regulated environment, credibility is won by what you decline to promise. VR is built on that principle — it even applies it to its own answers.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>10</span></div>
+</section>
+
+<!-- 11 · BEYOND SPEND -->
+<section class="slide">
+  <div class="bar"></div>
+  <div class="kicker">Why this is bigger than one product</div>
+  <h2>Spend Management is the first estate, not the only one</h2>
+  <p class="lead" style="margin-bottom:0.18in; max-width:10.4in;">Nothing in this is about card controls. It is about giving AI a durable memory of what a product means — and every US Bank product has the same gap.</p>
+  <div class="estates">
+    <div class="estate"><b>Spend VR</b><span>What we built. 7,900 facts, 10 approved rules.</span></div>
+    <div class="link">◄ contracts ►</div>
+    <div class="estate dim"><b>Payments VR</b><span>Settlement timing, rails, reversal semantics</span></div>
+    <div class="link">◄ contracts ►</div>
+    <div class="estate dim"><b>Lending VR</b><span>Origination rules, pricing, disclosure obligations</span></div>
+    <div class="link">◄ contracts ►</div>
+    <div class="estate dim"><b>Deposits VR</b><span>Account lifecycle, holds, availability</span></div>
+  </div>
+  <div class="cols" style="flex:0 0 auto;">
+    <div class="col"><div class="card"><div class="t">Each product keeps authority over its own meaning</div><p>Payments decides what settlement means. Spend does not get a vote — it depends on it, and the dependency is written down instead of assumed.</p></div></div>
+    <div class="col"><div class="card"><div class="t">The contracts between them stop being folklore</div><p>Today, what Spend relies on from Payments lives in people's heads and old email. As explicit contracts, a change on one side can tell the other side it is about to break.</p></div></div>
+    <div class="col"><div class="card" style="border-left-color:var(--red)"><div class="t">Then the bank-wide question becomes answerable</div><p>“What across US Bank breaks if we change settlement timing?” — today that is a month of meetings. With connected product graphs it is a query with citations.</p></div></div>
+  </div>
+  <div class="foot"><span>Verified Regeneration</span><span>11</span></div>
+</section>
+
+<!-- 12 · WHAT CHANGES -->
+<section class="slide dark">
+  <div class="bar"></div>
+  <div class="kicker">What changes on Monday</div>
+  <h2>The same layer, felt differently by each seat</h2>
+  <div class="cols" style="flex:0 0 auto; margin-bottom:0.2in;">
+    <div class="role"><b>Engineers</b><p><span class="before">Today: rediscover the product every session; find the landmine after the incident.</span>Ask a question, get an answer with file and line. See the rules that constrain the change <em>before</em> writing code — and hand any AI agent a change with its obligations attached.</p></div>
+    <div class="role"><b>Product managers</b><p><span class="before">Today: decisions live in a document nobody reads, and drift silently.</span>Ask what the product actually does today versus what we believe. Record a decision once and have it enforced on every future change, by every person and every model.</p></div>
+    <div class="role"><b>Business &amp; risk</b><p><span class="before">Today: evidence is assembled by hand, the week before the audit.</span>See every rule, who approved it, and when. Change approval and audit trail become artifacts the pipeline produces continuously.</p></div>
+  </div>
+  <div class="quote" style="font-size:19pt; border-left-color:var(--red); margin:0.1in 0 0;">AI will write more of our software every quarter.<br><b style="color:#fff;">The question is whether it will understand what our products mean — or keep asking us to remember for it.</b></div>
+  <div class="foot"><span>Verified Regeneration · Swarn Singh</span><span>Thank you</span></div>
+</section>
+
+</body></html>
