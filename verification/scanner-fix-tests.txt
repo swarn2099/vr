@@ -1,0 +1,48 @@
+
+> vr-v1@0.2.0 test
+> node --import tsx --test tests/*.test.ts
+
+✔ inventory covers methods, nested callbacks and Java, with explicit exclusions (2670.953708ms)
+✔ stages resume unchanged work and reject stale model publications (2001.548875ms)
+✔ context invalidates consumers after local edits and keeps independent rules fresh (1389.629041ms)
+✔ history retains intermediate changes and Jira creates bounded investigations (1758.463958ms)
+✔ human corrections use immutable attributed revisions and compare-and-swap (1105.366541ms)
+✔ unknown citations and invalid temporal claims never enter knowledge (1101.381375ms)
+✔ local understanding stays scoped and rejects an edit made during analysis (1505.862ms)
+✔ remote reconciliation queues changed semantics without modifying the checkout (1544.647125ms)
+✔ projection delivery replays a failed unacknowledged event (1071.790208ms)
+✔ revoking Jira removes its questions and reviews even when code remains accessible (1289.236834ms)
+✔ context respects a small budget with a long task and large review (1150.327667ms)
+✔ agent assessment context preserves deferred answers without audit bloat or human attribution (1153.554084ms)
+✔ a crowded context preserves the scoped assessment for its visible uncertainty (1181.265042ms)
+✔ a behavior correction retains source knowledge and queues scoped reconciliation (1462.219459ms)
+✔ schema upgrades retain data and a newer incompatible schema is rejected (828.114375ms)
+✔ Spring annotations and Java lambdas retain the actual function identity (8.62175ms)
+✔ graph retrieval explains source-backed relationships and revalidates after a dependency edit (1316.87725ms)
+✔ Codex worker fixes the requested model/effort and rejects tool use or an incomplete turn (2.946125ms)
+✔ budget exhaustion releases the reserved batch and cannot be reported as ready (2.011125ms)
+✔ cancelled setup does not call a model or claim readiness (0.3085ms)
+✔ discovers nested repositories, skips dependencies and symlinks, keeps one product and repository-qualified source freshness (3051.116ms)
+✔ cross-repository candidates are reconciled, cached, and reject a changed participating repository (1620.524291ms)
+✔ Jira supports company-hosted offset tools and Cloud cursor tools, reports missing pagination, refuses out-of-project evidence (1.585417ms)
+✔ full estate runner advances all repositories, tolerates Jira failure, persists progress and resumes without repeat model work (1527.839584ms)
+✔ route suffixes connect configured API prefixes as candidates, never as proven facts (0.21575ms)
+✔ non-text files are inventoried as excluded while source and ordinary text are scanned (458.270375ms)
+✔ refresh stores exclusions and preserves real scan errors on an unchanged retry (3002.6445ms)
+✔ one service owns the database, MCP uses its permitted operations, and hook delivery is once per prompt (3142.872291ms)
+✔ GitHub reads all issue states, filters pull requests, follows bounded local pagination, and preserves provenance (12.184ms)
+✔ empty, failed, partial pages and omitted comments remain distinct; comment edits change the source revision (1.405042ms)
+✔ flags skip semantic stages, keep the structural checkpoint, and reject publication disabled mid-flight (2219.679166ms)
+✔ history can run with current understanding disabled, and queued issues wait for enabled history (1237.643583ms)
+✔ Jira failure and an empty Jira collection both allow GitHub, with read and interpretation order preserved (1030.627375ms)
+✔ GitHub assertions stay intent, reuse unchanged evidence, retain history, invalidate revisions, and respect revocation (1181.405166ms)
+✔ Jira is interpreted before GitHub and conflicting tracker intent cannot overwrite its counterpart (1082.268ms)
+✔ a scoped learning worker cannot reserve unrelated pending investigations (964.346041ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23343.29475

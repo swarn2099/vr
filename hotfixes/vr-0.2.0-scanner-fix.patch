@@ -1,0 +1,490 @@
+diff --git a/src/scanner.ts b/src/scanner.ts
+--- a/src/scanner.ts
++++ b/src/scanner.ts
+@@ -293,7 +293,18 @@
+           throw Error("Exceeds configured 4 MiB analysis limit");
+         original = await git(root, "cat-file", "blob", entry.blob);
+       }
+-      if (original.includes("\0")) throw Error("Binary content in text file");
++      if (original.includes("\0")) {
++        result.files.push({
++          path: file,
++          hash: options.overlay ? hash(original) : entry.blob,
++          status: "excluded",
++          reason:
++            "Contains NUL characters: binary data or unsupported text encoding",
++          functions: 0,
++          units: 0,
++        });
++        continue;
++      }
+       const h = hash(original),
+         cacheKey = key(file, h, PARSER),
+         structural =
+diff --git a/src/engine.ts b/src/engine.ts
+--- a/src/engine.ts
++++ b/src/engine.ts
+@@ -297,8 +297,21 @@
+       exclude: source.attributes.exclude,
+     });
+     const sid = key(sourceId, s.revision, s.fingerprint, s.overlay, PARSER);
++    const coverage = {
++      files: s.files.length,
++      units: s.units.length,
++      excluded: s.files.filter((f) => f.status === "excluded").length,
++      nonTextFiles: s.files
++        .filter(
++          (f) =>
++            f.status === "excluded" &&
++            f.reason?.startsWith("Contains NUL characters:"),
++        )
++        .map((f) => f.path),
++      errors: s.errors,
++    };
+     if (source.checkpoint === sid)
+-      return { snapshotId: sid, unchanged: true, coverage: s.files.length };
++      return { snapshotId: sid, unchanged: true, coverage };
+     return this.db.transaction(async (tx) => {
+       const locked = (
+         await tx.query("SELECT * FROM vr_sources WHERE id=$1 FOR UPDATE", [
+@@ -391,11 +404,7 @@
+         jobs: { current, connections },
+         changed: changed.length,
+         impacted: impacted.paths.length,
+-        coverage: {
+-          files: s.files.length,
+-          units: s.units.length,
+-          errors: s.errors,
+-        },
++        coverage,
+       };
+     });
+   }
+diff --git a/src/setup.ts b/src/setup.ts
+--- a/src/setup.ts
++++ b/src/setup.ts
+@@ -210,6 +210,15 @@
+       pipeline: { version: 1, stages },
+     });
+     const scan = await call("refresh", { sourceId: ids.sourceId });
++    if (scan.coverage?.nonTextFiles?.length) {
++      const files: string[] = scan.coverage.nonTextFiles;
++      console.log(
++        `  Skipped ${files.length} file(s) containing NUL characters (binary data or unsupported text encoding). Exclusions are recorded in the database.`,
++      );
++      for (const file of files.slice(0, 10)) console.log(`    ${file}`);
++      if (files.length > 10)
++        console.log(`    ... and ${files.length - 10} more`);
++    }
+     if (scan.coverage?.errors?.length)
+       throw Error("Source scan has errors: " + scan.coverage.errors.join("; "));
+   }
+diff --git a/scripts/test-portable-host.mjs b/scripts/test-portable-host.mjs
+--- a/scripts/test-portable-host.mjs
++++ b/scripts/test-portable-host.mjs
+@@ -49,6 +49,11 @@
+     run("git", ["config", "user.name", "VR fixture"], repo);
+     run("git", ["config", "user.email", "test@example.invalid"], repo);
+     await writeFile(path.join(repo, file), body);
++    if (name === "billing")
++      await writeFile(
++        path.join(repo, "transactions.txt"),
++        Buffer.from([0, 1, 2, 3]),
++      );
+     run("git", ["add", "."], repo);
+     run("git", ["commit", "-qm", "Initial payment behavior"], repo);
+   }
+diff --git a/scripts/stop-estate-service.mjs b/scripts/stop-estate-service.mjs
+new file mode 100644
+--- /dev/null
++++ b/scripts/stop-estate-service.mjs
+@@ -0,0 +1,95 @@
++import { readFile, realpath } from "node:fs/promises";
++import { execFileSync } from "node:child_process";
++import path from "node:path";
++
++if (!process.argv[2])
++  throw Error("Usage: node scripts/stop-estate-service.mjs /path/to/estate");
++const root = await realpath(path.resolve(process.argv[2]));
++const meta = path.join(root, ".vr-estate");
++const read = async (file) => JSON.parse(await readFile(file, "utf8"));
++const alive = (pid) => {
++  try {
++    process.kill(pid, 0);
++    return true;
++  } catch (error) {
++    if (error.code === "ESRCH") return false;
++    throw error;
++  }
++};
++let manifest;
++try {
++  manifest = await read(path.join(meta, "estate.json"));
++} catch (error) {
++  if (error.code !== "ENOENT") throw error;
++}
++const state = manifest?.state ?? path.join(meta, "state");
++for (const lock of [
++  path.join(meta, "setup.lock"),
++  path.join(state, "understanding.lock"),
++]) {
++  let owner;
++  try {
++    owner = await read(lock);
++  } catch (error) {
++    if (error.code !== "ENOENT") throw error;
++  }
++  if (Number.isInteger(owner?.pid) && owner.pid > 1 && alive(owner.pid))
++    throw Error(
++      "VR is still setting up or learning. Cancel that run before restarting its service.",
++    );
++}
++let connection;
++try {
++  connection = await read(path.join(state, "connection.json"));
++} catch (error) {
++  if (error.code !== "ENOENT") throw error;
++  console.log("No VR service connection exists for this estate.");
++  process.exit(0);
++}
++const { pid } = connection;
++if (!Number.isInteger(pid) || pid <= 1 || pid === process.pid)
++  throw Error("Invalid VR service PID.");
++if (!alive(pid)) {
++  console.log("The estate's previous VR service is already stopped.");
++  process.exit(0);
++}
++const url = new URL(connection.url);
++if (
++  url.protocol !== "http:" ||
++  url.hostname !== "127.0.0.1" ||
++  url.username ||
++  url.password
++)
++  throw Error("Expected a local VR service URL.");
++const response = await fetch(new URL("/health", url), {
++  headers: { Authorization: "Bearer " + connection.readToken },
++  signal: AbortSignal.timeout(3000),
++});
++if (!response.ok)
++  throw Error("Could not authenticate this estate's VR service.");
++const health = await response.json();
++const command = execFileSync("ps", ["-p", String(pid), "-o", "command="], {
++  encoding: "utf8",
++});
++if (
++  health.pid !== pid ||
++  !String(health.version).startsWith("vr-portable-") ||
++  !command.includes("cli.js serve") ||
++  !command.includes(state)
++)
++  throw Error(
++    "Service identity does not match this estate; no process was stopped.",
++  );
++process.kill(pid, "SIGTERM");
++for (let attempt = 0; attempt < 50; attempt++) {
++  if (!alive(pid)) {
++    console.log(
++      "Stopped this estate's VR service cleanly. Its database is retained; setup will start the rebuilt service.",
++    );
++    process.exit(0);
++  }
++  await new Promise((resolve) => setTimeout(resolve, 200));
++}
++throw Error(
++  "The service is still shutting down. Wait before running setup; no force termination was attempted.",
++);
+diff --git a/scripts/test-scan-recovery.mjs b/scripts/test-scan-recovery.mjs
+new file mode 100644
+--- /dev/null
++++ b/scripts/test-scan-recovery.mjs
+@@ -0,0 +1,124 @@
++import {
++  mkdtemp,
++  mkdir,
++  writeFile,
++  readFile,
++  rm,
++  realpath,
++} from "node:fs/promises";
++import { execFileSync } from "node:child_process";
++import path from "node:path";
++import os from "node:os";
++import assert from "node:assert/strict";
++
++const code = process.cwd();
++const temp = await realpath(
++  await mkdtemp(path.join(os.tmpdir(), "vr-scan-recovery-")),
++);
++const estate = path.join(temp, "Spend Estate");
++const run = (command, args, cwd = code) =>
++  execFileSync(command, args, {
++    cwd,
++    encoding: "utf8",
++    stdio: ["ignore", "pipe", "pipe"],
++  });
++const setup = [
++  "dist/setup.js",
++  estate,
++  "--scan-only",
++  "--semantic",
++  "off",
++  "--jira",
++  "off",
++  "--history-years",
++  "0",
++];
++const stop = ["scripts/stop-estate-service.mjs", estate];
++let connection;
++try {
++  await mkdir(estate);
++  for (let n = 1; n <= 9; n++) {
++    const repo = path.join(estate, `repo-${n}`);
++    await mkdir(repo);
++    run("git", ["init", "-q"], repo);
++    run("git", ["config", "user.name", "VR fixture"], repo);
++    run("git", ["config", "user.email", "test@example.invalid"], repo);
++    await writeFile(
++      path.join(repo, "app.ts"),
++      "export const canApprove=(role: string)=>role==='manager';\n",
++    );
++    if (n === 4)
++      await writeFile(
++        path.join(repo, "transactions.txt"),
++        Buffer.from([0, 1, 2, 3]),
++      );
++    run("git", ["add", "."], repo);
++    run("git", ["commit", "-qm", "Code and transaction fixture"], repo);
++  }
++  const first = run(process.execPath, setup);
++  assert.match(first, /Scanning repository 9\/9/);
++  assert.match(first, /Skipped 1 file/);
++  const meta = path.join(estate, ".vr-estate");
++  const manifestFile = path.join(meta, "estate.json");
++  const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
++  connection = JSON.parse(
++    await readFile(path.join(manifest.state, "connection.json"), "utf8"),
++  );
++  await writeFile(
++    path.join(meta, "setup.lock"),
++    JSON.stringify({ pid: process.pid }),
++  );
++  assert.throws(
++    () => run(process.execPath, stop),
++    /still setting up or learning/,
++  );
++  process.kill(connection.pid, 0);
++  await rm(path.join(meta, "setup.lock"));
++  // An initial scan failure can leave a database before the manifest is saved.
++  await rm(manifestFile);
++  assert.match(
++    run(process.execPath, stop),
++    /Stopped this estate's VR service cleanly/,
++  );
++  assert.match(run(process.execPath, stop), /already stopped/);
++  const second = run(process.execPath, setup);
++  assert.match(second, /Scanning repository 9\/9/);
++  assert.match(second, /Skipped 1 file/);
++  const resumed = JSON.parse(await readFile(manifestFile, "utf8"));
++  const newConnection = JSON.parse(
++    await readFile(path.join(manifest.state, "connection.json"), "utf8"),
++  );
++  assert.notEqual(newConnection.pid, connection.pid);
++  connection = newConnection;
++  assert.equal(resumed.productId, manifest.productId);
++  assert.deepEqual(resumed.repositories, manifest.repositories);
++  const result = {
++    at: new Date().toISOString(),
++    passed: true,
++    repositories: 9,
++    binaryFixtureInRepository: 4,
++    reachedFinalRepository: true,
++    exclusionVisibleOnFirstScanAndRetry: true,
++    activeRunProtectedFromRestart: true,
++    cleanServiceRestart: true,
++    recoveryWithoutManifest: true,
++    productAndRepositoryIdentitiesRetained: true,
++    modelCalls: 0,
++  };
++  await writeFile(
++    path.join(code, "verification/scanner-fix-recovery.json"),
++    JSON.stringify(result, null, 2) + "\n",
++  );
++  console.log(JSON.stringify(result, null, 2));
++} finally {
++  if (connection) {
++    try {
++      run(process.execPath, stop);
++    } catch {
++      try {
++        process.kill(connection.pid, "SIGTERM");
++      } catch {}
++    }
++  }
++  await rm(temp, { recursive: true, force: true });
++}
+diff --git a/tests/scanner-nontext.test.ts b/tests/scanner-nontext.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/scanner-nontext.test.ts
+@@ -0,0 +1,108 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
++import os from "node:os";
++import path from "node:path";
++import { scan, git } from "../src/scanner.js";
++import { openDatabase } from "../src/database.js";
++import { Engine } from "../src/engine.js";
++
++async function fixture() {
++  const dir = await mkdtemp(path.join(os.tmpdir(), "vr-nontext-"));
++  const root = path.join(dir, "repo");
++  await mkdir(root);
++  await git(root, "init", "-q");
++  await git(root, "config", "user.name", "VR fixture");
++  await git(root, "config", "user.email", "test@example.invalid");
++  await writeFile(
++    path.join(root, "app.ts"),
++    "export const permitted = (role: string) => role === 'manager';\n",
++  );
++  await writeFile(
++    path.join(root, "transactions.txt"),
++    Buffer.from([0, 1, 2, 3, 65]),
++  );
++  await writeFile(
++    path.join(root, "utf16.txt"),
++    Buffer.from("\ufeffLegacy transaction fixture", "utf16le"),
++  );
++  await writeFile(
++    path.join(root, "notes.txt"),
++    "A regular text fixture stays in scope.\n",
++  );
++  await git(root, "add", ".");
++  await git(root, "commit", "-qm", "Source and non-text fixtures");
++  return { dir, root };
++}
++
++test("non-text files are inventoried as excluded while source and ordinary text are scanned", async () => {
++  const f = await fixture();
++  try {
++    const s = await scan(f.root, "source");
++    assert.deepEqual(s.errors, []);
++    assert.equal(s.files.length, 4);
++    for (const file of ["transactions.txt", "utf16.txt"]) {
++      const record = s.files.find((entry) => entry.path === file)!;
++      assert.equal(record.status, "excluded");
++      assert.match(record.reason!, /binary data or unsupported text encoding/);
++      assert.equal(record.units, 0);
++      assert.ok(!s.units.some((unit) => unit.path === file));
++    }
++    assert.equal(
++      s.files.find((entry) => entry.path === "app.ts")?.functions,
++      1,
++    );
++    assert.ok(s.units.some((unit) => unit.path === "notes.txt"));
++    const before = await scan(f.root, "source", { overlay: true });
++    await writeFile(
++      path.join(f.root, "transactions.txt"),
++      Buffer.from([0, 9, 8]),
++    );
++    const after = await scan(f.root, "source", { overlay: true });
++    assert.notEqual(before.fingerprint, after.fingerprint);
++    assert.deepEqual(after.errors, []);
++  } finally {
++    await rm(f.dir, { recursive: true, force: true });
++  }
++});
++
++test("refresh stores exclusions and preserves real scan errors on an unchanged retry", async () => {
++  const f = await fixture();
++  const state = path.join(f.dir, "state");
++  const db = await openDatabase(state);
++  try {
++    const engine = new Engine(db, state);
++    const ids = await engine.connect("Fixture", f.root);
++    const first = await engine.refresh(ids.sourceId);
++    assert.deepEqual(first.coverage.errors, []);
++    assert.deepEqual(first.coverage.nonTextFiles, [
++      "transactions.txt",
++      "utf16.txt",
++    ]);
++    const stored = (
++      await db.query(
++        "SELECT status,reason,units FROM vr_files WHERE snapshot_id=$1 AND path=$2",
++        [first.snapshotId, "transactions.txt"],
++      )
++    ).rows[0];
++    assert.equal(stored.status, "excluded");
++    assert.match(stored.reason, /NUL/);
++    const repeat = await engine.refresh(ids.sourceId);
++    assert.ok("unchanged" in repeat && repeat.unchanged);
++    assert.deepEqual(repeat.coverage, first.coverage);
++    await writeFile(
++      path.join(f.root, "broken.ts"),
++      "export const broken = ;\n",
++    );
++    await git(f.root, "add", ".");
++    await git(f.root, "commit", "-qm", "Real syntax error");
++    const bad = await engine.refresh(ids.sourceId);
++    assert.ok(bad.coverage.errors.some((error) => error.includes("broken.ts")));
++    const retried = await engine.refresh(ids.sourceId);
++    assert.ok("unchanged" in retried && retried.unchanged);
++    assert.deepEqual(retried.coverage.errors, bad.coverage.errors);
++  } finally {
++    await db.close();
++    await rm(f.dir, { recursive: true, force: true });
++  }
++});
+diff --git a/verification/scanner-fix-report.md b/verification/scanner-fix-report.md
+new file mode 100644
+--- /dev/null
++++ b/verification/scanner-fix-report.md
+@@ -0,0 +1,23 @@
++# Scanner fix for VR 0.2.0
++
++The work-Mac screenshot showed a successful build and VSIX package, followed by setup stopping at repository 4 of 9 because `transactions.txt` contained a NUL character.
++
++## Changes
++
++- Files containing NUL characters are recorded as excluded, with the reason “binary data or unsupported text encoding”; they do not become model evidence or terminate scanning.
++- Their paths remain in the database's file inventory and are reported in terminal scan progress.
++- Unchanged scan retries return the same coverage details, including genuine errors, so a retry cannot accidentally hide a parse failure.
++- A small service-stop helper authenticates and verifies the selected estate's local service before shutting it down cleanly. It refuses to stop an active setup or learning run and preserves the database.
++
++This fix does not decode UTF-16 or other unsupported text encodings. Those files remain explicit exclusions. Dependency versions and the lockfile are not changed by the patch.
++
++## Validation
++
++- Type checking passed.
++- All 36 automated tests passed, with no failures or skips.
++- The real compiled setup/service completed a nine-repository fixture containing a binary `.txt` in repository 4.
++- The exclusion remained visible on an unchanged retry.
++- The service restarted cleanly and retained the product/repository identities, including recovery without an estate manifest.
++- The three-repository host integration completed code, connections, history and Jira stages using controlled VS Code/model/Jira responses; its unchanged rerun made zero additional model calls.
++
++These are fixture tests. The private Spend Management repositories on the work Mac have not been accessed or validated here.
+diff --git a/hotfixes/SCANNER-FIX.md b/hotfixes/SCANNER-FIX.md
+new file mode 100644
+--- /dev/null
++++ b/hotfixes/SCANNER-FIX.md
+@@ -0,0 +1,19 @@
++# Apply the VR 0.2.0 scanner fix
++
++Save `vr-0.2.0-scanner-fix.patch` in Downloads on the work Mac. Open a terminal in the VR source folder and run each command below only if the previous one succeeds:
++
++```sh
++git apply --check "$HOME/Downloads/vr-0.2.0-scanner-fix.patch"
++git apply "$HOME/Downloads/vr-0.2.0-scanner-fix.patch"
++npm run build
++node scripts/stop-estate-service.mjs "$HOME/SpendManagementHackathon"
++npm run setup -- "$HOME/SpendManagementHackathon"
++```
++
++Use your actual estate folder if its name differs. The stop command verifies the local estate service before stopping it; saved knowledge remains in place. If VR is still learning in another window, cancel that run first. The stopped background service must be restarted so it loads the rebuilt scanner.
++
++The patch updates scanner, coverage and progress code and adds regression checks and the service-stop helper. It preserves your `package.json`, `package-lock.json`, installed dependencies and customer code. No additional `npm install` or VSIX repackaging is needed: portable mode runs the scanner service from the rebuilt VR folder.
++
++If `git apply --check` fails, do not force it; the local source differs from the expected 0.2.0 files. Applying the same patch twice also fails this check.
++
++After applying, the problematic file should be listed as skipped and scanning should proceed to the remaining repositories. New read/parser errors remain visible and can still stop setup. The existing ZIP release predates this patch; apply this patch after extracting or cloning that release.

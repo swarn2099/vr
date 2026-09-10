@@ -49,6 +49,11 @@ try {
     run("git", ["config", "user.name", "VR fixture"], repo);
     run("git", ["config", "user.email", "test@example.invalid"], repo);
     await writeFile(path.join(repo, file), body);
+    if (name === "billing")
+      await writeFile(
+        path.join(repo, "transactions.txt"),
+        Buffer.from([0, 1, 2, 3]),
+      );
     run("git", ["add", "."], repo);
     run("git", ["commit", "-qm", "Initial payment behavior"], repo);
   }

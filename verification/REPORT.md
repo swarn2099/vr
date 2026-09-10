@@ -2,6 +2,8 @@
 
 Verified on 10 September 2026 on macOS ARM64 with Node.js 24.14.0.
 
+This report describes the original ZIP release. The later scanner fix passed 36 tests and a nine-repository recovery check; see [scanner-fix-report.md](scanner-fix-report.md). The GitHub source checkout excludes generated installers and the ZIP's release manifest.
+
 ## Results
 
 | Check | Result |

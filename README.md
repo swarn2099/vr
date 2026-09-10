@@ -2,7 +2,41 @@
 
 VR 0.2.0 builds one product knowledge base from multiple Git repositories, their history and Jira. This release is intended for a supervised macOS pilot.
 
+## Clone and update through GitHub
+
+This repository contains the source, tests and build scripts. Generated `dist/` files, extension installers, dependency folders and local estate databases are excluded from Git.
+
+For a fresh clone on your work Mac, use Node.js **24 or later** and your configured company package registry:
+
+```sh
+git clone git@github.com:swarn2099/vr.git
+cd vr
+npm install
+npm run build
+npm run package:extension
+npm run setup -- "$HOME/SpendManagementHackathon"
+```
+
+Replace the estate path with your actual folder. Run commands one at a time and resolve any error before proceeding. Initial model selection, workspace trust and Jira setup happen in VS Code as described below. Your company's registry must allow the dependency versions; listing a package in its catalog does not guarantee permission to download every version.
+
+For the scanner fix in this update, run the following from your existing VR clone:
+
+```sh
+git pull --ff-only
+npm run build
+node scripts/stop-estate-service.mjs "$HOME/SpendManagementHackathon"
+npm run setup -- "$HOME/SpendManagementHackathon"
+```
+
+The update preserves `package.json` and `package-lock.json`, so no dependency reinstall is required for this fix. The stop helper verifies and shuts down only this estate's VR service, retaining its database. Cancel any active learning run before using it. Rebuilding alone does not reload an already-running service.
+
+For future updates that change dependencies, run `npm install` before building; for extension/UI changes, also run `npm run package:extension` before setup. If Git reports local changes or a conflict, resolve it before continuing; do not discard your work-Mac dependency adjustments. A clone without an existing local VSIX needs the fresh-clone packaging step above.
+
+Files containing NUL characters are now recorded as excluded with their paths and the reason “binary data or unsupported text encoding.” They do not stop the remaining repository scans. Actual parser/read errors still remain visible on retries. See [scanner-fix verification](verification/scanner-fix-report.md).
+
 ## Start on your work Mac
+
+The following route applies to the previously distributed ZIP, which includes built files; GitHub source downloads require the build steps above.
 
 1. Unzip this folder anywhere outside your code repositories.
 2. Have Node.js **24 or later**, Git, current VS Code and your work-approved Copilot/model access available. Keep your existing Jira MCP connection configured in VS Code.

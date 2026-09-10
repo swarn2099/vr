@@ -17,6 +17,7 @@ for (const n of [
   "tsconfig.json",
   "LICENSE",
   "README.md",
+  ".gitignore",
 ])
   await cp(path.join(root, n), path.join(dest, n));
 await mkdir(path.join(dest, "dist"));

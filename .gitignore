@@ -3,3 +3,13 @@ dist/
 release/
 *.zip
 .vr-estate/
+.DS_Store
+*.vsix
+*.zip.sha256
+.vr/
+.env
+.env.*
+!.env.example
+RELEASE-MANIFEST.json
+hotfixes/binary-scan/
+evaluation/results/

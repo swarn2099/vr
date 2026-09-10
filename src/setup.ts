@@ -210,6 +210,15 @@ try {
       pipeline: { version: 1, stages },
     });
     const scan = await call("refresh", { sourceId: ids.sourceId });
+    if (scan.coverage?.nonTextFiles?.length) {
+      const files: string[] = scan.coverage.nonTextFiles;
+      console.log(
+        `  Skipped ${files.length} file(s) containing NUL characters (binary data or unsupported text encoding). Exclusions are recorded in the database.`,
+      );
+      for (const file of files.slice(0, 10)) console.log(`    ${file}`);
+      if (files.length > 10)
+        console.log(`    ... and ${files.length - 10} more`);
+    }
     if (scan.coverage?.errors?.length)
       throw Error("Source scan has errors: " + scan.coverage.errors.join("; "));
   }

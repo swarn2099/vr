@@ -1,0 +1,13 @@
+{
+  "at": "2026-09-10T20:56:56.307Z",
+  "passed": true,
+  "repositories": 9,
+  "binaryFixtureInRepository": 4,
+  "reachedFinalRepository": true,
+  "exclusionVisibleOnFirstScanAndRetry": true,
+  "activeRunProtectedFromRestart": true,
+  "cleanServiceRestart": true,
+  "recoveryWithoutManifest": true,
+  "productAndRepositoryIdentitiesRetained": true,
+  "modelCalls": 0
+}

@@ -297,8 +297,21 @@ export class Engine {
       exclude: source.attributes.exclude,
     });
     const sid = key(sourceId, s.revision, s.fingerprint, s.overlay, PARSER);
+    const coverage = {
+      files: s.files.length,
+      units: s.units.length,
+      excluded: s.files.filter((f) => f.status === "excluded").length,
+      nonTextFiles: s.files
+        .filter(
+          (f) =>
+            f.status === "excluded" &&
+            f.reason?.startsWith("Contains NUL characters:"),
+        )
+        .map((f) => f.path),
+      errors: s.errors,
+    };
     if (source.checkpoint === sid)
-      return { snapshotId: sid, unchanged: true, coverage: s.files.length };
+      return { snapshotId: sid, unchanged: true, coverage };
     return this.db.transaction(async (tx) => {
       const locked = (
         await tx.query("SELECT * FROM vr_sources WHERE id=$1 FOR UPDATE", [
@@ -391,11 +404,7 @@ export class Engine {
         jobs: { current, connections },
         changed: changed.length,
         impacted: impacted.paths.length,
-        coverage: {
-          files: s.files.length,
-          units: s.units.length,
-          errors: s.errors,
-        },
+        coverage,
       };
     });
   }

@@ -1,0 +1,8 @@
+{
+  "patch": "/Users/swarn/ProductOS/vr-portable/hotfixes/vr-0.2.0-scanner-fix.patch",
+  "bytes": 18688,
+  "sha256": "bbe79cec47defe48c2bcd3a46bb0d067894bcca3f738d1e0248fc9c454b39fc2",
+  "verifiedAgainstOriginalRelease": true,
+  "files": 9,
+  "dependencyFilesChanged": false
+}

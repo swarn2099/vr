@@ -1,0 +1,22 @@
+[3:56:57 PM] Discovering Git repositories under /private/var/folders/w7/gbvvvhks6z77qvhg6dj69f080000gn/T/vr-host-f4LLk7/Spend Estate
+[3:56:58 PM] Scanning repository 1/3: billing
+  Skipped 1 file(s) containing NUL characters (binary data or unsupported text encoding). Exclusions are recorded in the database.
+    transactions.txt
+[3:56:58 PM] Scanning repository 2/3: events
+[3:56:59 PM] Scanning repository 3/3: web
+[3:56:59 PM] Open /private/var/folders/w7/gbvvvhks6z77qvhg6dj69f080000gn/T/vr-host-f4LLk7/Spend Estate/.vr-estate/Spend-Management-VR.code-workspace to continue understanding.
+
+{
+  "at": "2026-09-10T20:57:00.379Z",
+  "passed": true,
+  "host": "controlled VS Code/model/Jira fixture",
+  "realSetupCommand": true,
+  "realServiceAndDatabase": true,
+  "repositories": 3,
+  "allConfiguredStagesCompleted": true,
+  "unchangedRerunModelCalls": 0,
+  "modelCalls": 11,
+  "uiProgressMessages": 39,
+  "jiraTool": "company-hosted offset JQL fixture",
+  "crossRepositoryStage": true
+}

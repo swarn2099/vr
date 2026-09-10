@@ -293,7 +293,18 @@ export async function scan(
           throw Error("Exceeds configured 4 MiB analysis limit");
         original = await git(root, "cat-file", "blob", entry.blob);
       }
-      if (original.includes("\0")) throw Error("Binary content in text file");
+      if (original.includes("\0")) {
+        result.files.push({
+          path: file,
+          hash: options.overlay ? hash(original) : entry.blob,
+          status: "excluded",
+          reason:
+            "Contains NUL characters: binary data or unsupported text encoding",
+          functions: 0,
+          units: 0,
+        });
+        continue;
+      }
       const h = hash(original),
         cacheKey = key(file, h, PARSER),
         structural =
