@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-10T21:26:28.548233+00:00",
+  "passed": true,
+  "actualVsixPackagingPassed": true,
+  "readmeLinkResolved": "https://github.com/swarn2099/vr/blob/main/verification/scanner-fix-report.md",
+  "packagedRepository": {
+    "type": "git",
+    "url": "https://github.com/swarn2099/vr.git"
+  },
+  "packagedAssetsMatchBuild": true,
+  "dependencyFilesChanged": false,
+  "vsixBytes": 151262242,
+  "vsixSha256": "5a6dd043db1c262e927ee381bae145c3b126a765463a442cb08bec3fee3ad0b3"
+}

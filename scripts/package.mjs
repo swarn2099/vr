@@ -24,6 +24,11 @@ await writeFile(
     ),
 );
 const pkg = JSON.parse(await readFile("package.json", "utf8"));
+// The staging folder has no Git metadata; VSCE needs a repository to resolve README links.
+pkg.repository ??= {
+  type: "git",
+  url: "https://github.com/swarn2099/vr.git",
+};
 delete pkg.devDependencies;
 delete pkg.scripts;
 pkg.files = [
@@ -47,7 +52,8 @@ execFileSync(
   path.join(root, "node_modules", ".bin", "vsce"),
   [
     "package",
-    "--allow-missing-repository",
+    "--githubBranch",
+    "main",
     "--out",
     path.join(root, "dist", `vr-portable-${pkg.version}.vsix`),
   ],
