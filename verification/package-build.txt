@@ -1,0 +1,23 @@
+
+> vr-v1@0.2.0 package:extension
+> node scripts/package.mjs
+
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+added 179 packages in 2s
+ WARNING  This extension consists of 8742 files, out of which 3826 are JavaScript files. For performance reasons, you should bundle your extension: https://aka.ms/vscode-bundle-extension. You should also exclude unnecessary files by adding them to your .vscodeignore: https://aka.ms/vscode-vscodeignore.
+
+ INFO  Files included in the VSIX:
+vr-portable-0.2.0.vsix
+├─ [Content_Types].xml 
+├─ extension.vsixmanifest 
+└─ extension/
+   ├─ LICENSE.txt [0.18 KB]
+   ├─ package.json [3.72 KB]
+   ├─ readme.md [9.93 KB]
+   ├─ dist/ (6 files) [11.54 MB]
+   └─ node_modules/ (8731 files) [457.73 MB]
+
+=> Run vsce ls --tree to see all included files.
+
+ DONE  Packaged: /Users/swarn/ProductOS/vr-portable/dist/vr-portable-0.2.0.vsix (8742 files, 144.25 MB)

@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-10T19:20:15.630Z",
+  "passed": true,
+  "host": "controlled VS Code/model/Jira fixture",
+  "realSetupCommand": true,
+  "realServiceAndDatabase": true,
+  "repositories": 3,
+  "allConfiguredStagesCompleted": true,
+  "unchangedRerunModelCalls": 0,
+  "modelCalls": 11,
+  "uiProgressMessages": 39,
+  "jiraTool": "company-hosted offset JQL fixture",
+  "crossRepositoryStage": true
+}

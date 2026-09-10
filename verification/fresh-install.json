@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-10T19:25:23.802Z",
+  "node": "v24.14.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "passed": true,
+  "controlledHost": true,
+  "archiveHashesVerified": 62,
+  "npmInstallPassed": true,
+  "independentNodeModules": true,
+  "builtSetupHelpPassed": true,
+  "integration": {
+    "at": "2026-09-10T19:25:30.828Z",
+    "passed": true,
+    "host": "controlled VS Code/model/Jira fixture",
+    "realSetupCommand": true,
+    "realServiceAndDatabase": true,
+    "repositories": 3,
+    "allConfiguredStagesCompleted": true,
+    "unchangedRerunModelCalls": 0,
+    "modelCalls": 11,
+    "uiProgressMessages": 39,
+    "jiraTool": "company-hosted offset JQL fixture",
+    "crossRepositoryStage": true
+  }
+}
