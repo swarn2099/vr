@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-10T20:57:00.379Z",
+  "at": "2026-09-10T23:26:53.668Z",
   "passed": true,
   "host": "controlled VS Code/model/Jira fixture",
   "realSetupCommand": true,
@@ -8,7 +8,11 @@
   "allConfiguredStagesCompleted": true,
   "unchangedRerunModelCalls": 0,
   "modelCalls": 11,
-  "uiProgressMessages": 39,
+  "uiProgressMessages": 46,
   "jiraTool": "company-hosted offset JQL fixture",
-  "crossRepositoryStage": true
+  "crossRepositoryStage": true,
+  "partialKnowledgeRetrievable": true,
+  "reopeningPausedOrInterruptedEstateModelCalls": 0,
+  "persistedCancellationBlocksAutomaticStart": true,
+  "explicitResumeCompleted": true
 }

@@ -72,6 +72,31 @@ npm run setup -- /Users/swarn/Desktop/SpendManagementEstate --status
 
 Defaults: one year of ancestor history, Jira enabled, GitHub disabled, semantic search enabled, and a maximum of 2,000 understanding calls per session. A quota failure or call limit pauses the run honestly. Rerun when the provider is available; no credits are purchased automatically. Cancel in VS Code or press Ctrl+C in the waiting terminal; completed work is retained.
 
+### Use VR before learning is complete
+
+VR can retrieve already-published findings and their evidence while learning is paused. Coverage and unresolved questions accompany the results; areas not yet interpreted may have no useful findings. Current-code processing comes before estate-wide connections, history and Jira, so those later stages may not have started. Completing half the model calls does not imply understanding half the product.
+
+The displayed session limit is a maximum number of model calls, **not a prediction of how many calls are needed or a monthly credit limit**. You can cancel the VR progress notification, or press Ctrl+C in the setup terminal, and wait until VR reports paused. Completed batches are saved; an interrupted batch may need to run again.
+
+Paused and interrupted learning no longer restarts just because the workspace is reopened. VR's context and review tools stay available. Explicitly running setup again or choosing **VR: Learn or Resume Estate** starts another session. To allow at most 100 additional understanding calls in that next session:
+
+```sh
+npm run setup -- "$HOME/SpendManagementHackathon" --max-calls 100
+```
+
+The limit resets on each explicit session; this command saves 100 as the estate's subsequent session limit. Repeated resumes can consume more than 100 calls in total. Calls that fail or require retrying can also use the session budget.
+
+If upgrading an already-paused installation to this fix, cancel and wait for paused status first, then update and install the extension **without rerunning setup**:
+
+```sh
+git pull --ff-only
+npm run build
+npm run package:extension
+code --install-extension dist/vr-portable-0.2.0.vsix --force
+```
+
+If `code` is not available in your terminal, use VS Code's **Extensions: Install from VSIX...** command and select that file. Reload the estate window to load the new extension. Learning remains paused until you explicitly resume it. No dependency reinstall is needed for this update.
+
 The editable configuration is `<estate>/.vr-estate/estate.json`. It records the shared product, source IDs, repository paths, Jira project selection and stage settings. `VR: Configure Understanding Stages` opens it. The generated workspace and progress live in the same directory. CLI flags override saved settings where specified. Avoid running two setup sessions for the same estate simultaneously; the setup and understanding workers use ownership locks.
 
 GitHub is optional: set `stages.githubIssues` to true and add `github: [{"owner":"organization","repo":"repository"}]` to the estate manifest. The existing GitHub.com connector uses an authorized VS Code GitHub session if one is available. GitHub Enterprise hosts need a separate adapter.

@@ -277,6 +277,7 @@ try {
     await log(
       "awaiting-vscode",
       "Open " + workspace + " to continue understanding.",
+      { requestId: manifest.requestId },
     );
   } else {
     let code = option("--code") ?? "code";

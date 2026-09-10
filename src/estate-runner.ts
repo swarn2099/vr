@@ -48,7 +48,13 @@ export async function runEstate(
   let calls = 0;
   const optionalFailures: Array<{ stage: string; error: string }> = [];
   const report = async (phase: string, message: string, extra = {}) =>
-    host.report({ phase, message, calls, ...extra });
+    host.report({
+      phase,
+      message,
+      calls,
+      sessionCallLimit: m.maxCalls,
+      ...extra,
+    });
   const check = () => {
     if (host.cancelled())
       throw Error(
@@ -83,7 +89,7 @@ export async function runEstate(
       calls++;
       await report(
         b.stage,
-        `Understanding ${b.stage}: model call ${calls}/${m.maxCalls}`,
+        `Understanding ${b.stage}: model call ${calls} (session limit: ${m.maxCalls}; not an estimate of remaining calls)`,
         { jobId: b.jobId },
       );
       const prepared = preparePrompt(b);
@@ -228,6 +234,7 @@ export async function runEstate(
       ? "Code knowledge is ready; some optional sources need attention."
       : "Estate setup and configured understanding are complete.",
     calls,
+    sessionCallLimit: m.maxCalls,
     optionalFailures,
     jobs: activeJobs(o),
     questions: o.questions.filter((q: any) => q.state !== "answered").length,

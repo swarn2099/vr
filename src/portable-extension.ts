@@ -594,9 +594,23 @@ export async function activatePortable(
   }, 600000);
   context.subscriptions.push({ dispose: () => clearInterval(poll) });
   await ensure();
-  if (context.workspaceState.get("lastRequest") !== m.requestId) void start();
+  const savedProgress = await readJson(statusFile).catch(() => undefined);
+  const savedControl = await readJson(controlFile).catch(() => undefined);
+  // Only a fresh setup request may start learning automatically. Reopening a
+  // paused or interrupted workspace must not spend another session's budget.
+  const freshSetup =
+    savedProgress?.requestId === m.requestId &&
+    savedProgress?.phase === "awaiting-vscode";
+  const cancelled =
+    savedControl?.requestId === m.requestId && savedControl?.cancel === true;
+  if (
+    freshSetup &&
+    !cancelled &&
+    context.workspaceState.get("lastRequest") !== m.requestId
+  )
+    void start();
   else {
-    current = await readJson(statusFile).catch(() => undefined);
+    current = savedProgress;
     await openPanel();
   }
   return { start, overview, collectJira, openPanel, call, manifest: () => m };

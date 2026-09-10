@@ -68,6 +68,8 @@ try {
         "1",
         "--semantic",
         "off",
+        "--max-calls",
+        "1",
       ],
       codeRoot,
     ),
@@ -271,20 +273,79 @@ try {
   const extension = createRequire(import.meta.url)(
     path.join(codeRoot, "dist/extension.cjs"),
   );
-  const api = await extension.activate({
-    extensionPath: codeRoot,
-    subscriptions,
-    workspaceState: {
-      get: (k) => values.get(k),
-      update: async (k, v) => values.set(k, v),
-    },
-  });
+  const activate = () =>
+    extension.activate({
+      extensionPath: codeRoot,
+      subscriptions,
+      workspaceState: {
+        get: (k) => values.get(k),
+        update: async (k, v) => values.set(k, v),
+      },
+    });
+  let api = await activate();
   let status;
   for (let i = 0; i < 150; i++) {
     status = JSON.parse(await readFile(path.join(meta, "progress.json")));
     if (["ready", "ready-with-gaps", "paused"].includes(status.phase)) break;
     await new Promise((r) => setTimeout(r, 200));
   }
+  assert.equal(status.phase, "paused", JSON.stringify(status));
+  assert.equal(host.modelCalls, 1);
+  const partial = await api.call("vr_context", {
+    productId: m.productId,
+    task: "Payment approval fixture",
+  });
+  assert.ok(
+    partial.behaviors.length > 0,
+    "Published knowledge remains retrievable before learning completes",
+  );
+  assert.ok(partial.coverage.jobs.some((j) => j.state !== "completed"));
+  assert.equal(
+    host.modelCalls,
+    1,
+    "Querying saved knowledge must not invoke the understanding model",
+  );
+  const reopen = async () => {
+    for (const d of subscriptions) d.dispose?.();
+    subscriptions = [];
+    values.clear(); // Persisted pause also works without the prior workspace UI state.
+    api = await activate();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  };
+  await reopen();
+  assert.equal(
+    host.modelCalls,
+    1,
+    "Reopening a budget-paused estate must not spend another call",
+  );
+  await writeFile(
+    path.join(meta, "progress.json"),
+    JSON.stringify({ ...status, phase: "learning" }),
+  );
+  await reopen();
+  assert.equal(
+    host.modelCalls,
+    1,
+    "An interrupted workspace must wait for explicit resume",
+  );
+  await writeFile(
+    path.join(meta, "progress.json"),
+    JSON.stringify({ ...status, phase: "awaiting-vscode" }),
+  );
+  await writeFile(
+    path.join(meta, "control.json"),
+    JSON.stringify({ requestId: m.requestId, cancel: true }),
+  );
+  await reopen();
+  assert.equal(
+    host.modelCalls,
+    1,
+    "Persisted cancellation must suppress an unconsumed automatic setup request",
+  );
+  m.maxCalls = 100;
+  await writeFile(manifestPath, JSON.stringify(m));
+  await api.start(); // Explicit resume clears cancellation and uses completed analyses.
+  status = JSON.parse(await readFile(path.join(meta, "progress.json")));
   assert.equal(status.phase, "ready", JSON.stringify(status));
   assert.equal(status.repositories, 3);
   assert.ok(host.modelCalls > 0);
@@ -313,7 +374,7 @@ try {
     before,
     "Unchanged setup must reuse completed interpretations",
   );
-  const definitions = await host.mcp[0].provideMcpServerDefinitions();
+  const definitions = await host.mcp.at(-1).provideMcpServerDefinitions();
   assert.equal(definitions.length, 1);
   const result = {
     at: new Date().toISOString(),
@@ -328,6 +389,10 @@ try {
     uiProgressMessages: host.packets.length,
     jiraTool: "company-hosted offset JQL fixture",
     crossRepositoryStage: true,
+    partialKnowledgeRetrievable: true,
+    reopeningPausedOrInterruptedEstateModelCalls: 0,
+    persistedCancellationBlocksAutomaticStart: true,
+    explicitResumeCompleted: true,
   };
   await mkdir("verification", { recursive: true });
   await writeFile(
